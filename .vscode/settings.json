@@ -54,5 +54,12 @@
       "source.format.oxc": "explicit"
     }
   },
-  "ruff.nativeServer": "on"
+  "ruff.nativeServer": "on",
+  "python-envs.pythonProjects": [
+    {
+      "path": "apps/api",
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    }
+  ]
 }
