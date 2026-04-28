@@ -1,0 +1,27 @@
+{
+  "name": "bi-agent",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail -n api,web -c blue,green \"pnpm dev:api\" \"pnpm dev:web\"",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "uv run --project apps/api python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "init:db": "uv run --project apps/api python -m app.scripts.init_database",
+    "build": "pnpm --filter web build",
+    "lint": "pnpm lint:web && pnpm lint:api",
+    "lint:web": "pnpm --filter web lint",
+    "lint:api": "uv run --project apps/api ruff check",
+    "format": "pnpm format:web && pnpm format:api",
+    "format:web": "pnpm --filter web format",
+    "format:api": "uv run --project apps/api ruff format",
+    "format:check": "pnpm format:web:check && pnpm format:api:check",
+    "format:web:check": "pnpm --filter web format:check",
+    "format:api:check": "uv run --project apps/api ruff format --check",
+    "start:web": "pnpm --filter web start",
+    "start:api": "uv run --project apps/api python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

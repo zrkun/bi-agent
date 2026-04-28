@@ -1,0 +1,23 @@
+[project]
+name = "bi-agent-backend"
+version = "0.1.0"
+description = "Python API backend for BI Agent"
+requires-python = ">=3.9"
+dependencies = [
+  "fastapi>=0.115.0",
+  "minio>=7.2.20",
+  "psycopg[binary]>=3.2.0",
+  "uvicorn[standard]>=0.30.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.12",
+]

@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "tamasfe.even-better-toml",
+    "oxc.oxc-vscode",
+    "bradlc.vscode-tailwindcss",
+    "csstools.postcss",
+    "redhat.vscode-yaml",
+    "mikestead.dotenv"
+  ]
+}
