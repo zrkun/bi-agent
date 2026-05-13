@@ -1,5 +1,5 @@
-import { AgentHomePage } from "@/components/agent-home";
+import AgentPage from "@/app/agent/page";
 
 export default function Home() {
-  return <AgentHomePage />;
+  return <AgentPage />;
 }

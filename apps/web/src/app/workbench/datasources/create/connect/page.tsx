@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   ArrowLeft,
@@ -37,6 +38,7 @@ import {
   Trash2,
   Type,
   EyeOff,
+  RotateCcw,
 } from "lucide-react";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
@@ -94,6 +96,29 @@ type CreateDatasourceResponse = {
   };
   message: string;
   ok: boolean;
+};
+type CreateLocalFilesResponse = {
+  message: string;
+  ok: boolean;
+};
+type CreateUploadUrlResponse = {
+  bucket: string;
+  object_key: string;
+  upload_url: string;
+};
+type DatasourceDetailResponse = {
+  datasource?: {
+    database?: string | null;
+    host?: string | null;
+    id: string;
+    name: string;
+    password?: string | null;
+    port?: number | null;
+    schema?: string | null;
+    ssl?: boolean | null;
+    type: string;
+    username?: string | null;
+  } | null;
 };
 
 const fieldTypeOptions: Array<{ label: string; type: FieldType }> = [
@@ -184,8 +209,9 @@ async function parseWorkbook(file: File): Promise<ParsedSheet[]> {
   const data = await file.arrayBuffer();
   const workbook = XLSX.read(data, { cellDates: true });
   const fallbackName = file.name.replace(/\.[^.]+$/, "");
+  const sheetNames = workbook.SheetNames.slice(0, 5);
 
-  return workbook.SheetNames.slice(0, 5).map((sheetName, sheetIndex) => {
+  return sheetNames.map((sheetName, sheetIndex) => {
     const worksheet = workbook.Sheets[sheetName];
     const rows = XLSX.utils.sheet_to_json<Array<string | number | Date | null>>(worksheet, {
       blankrows: false,
@@ -215,7 +241,7 @@ async function parseWorkbook(file: File): Promise<ParsedSheet[]> {
     return {
       fields: parsedFields,
       key: `${sheetIndex}-${sheetName}`,
-      name: `${fallbackName}-${sheetName}`,
+      name: sheetNames.length === 1 ? fallbackName : `${fallbackName}-${sheetName}`,
       rows: formatRowsByFields(normalizedRows, parsedFields),
       sourceRows: normalizedRows,
     };
@@ -230,16 +256,34 @@ export default function ConnectDatasourcePage() {
   );
 }
 
+function getDatasourceTypeName(type: string) {
+  const labels: Record<string, string> = {
+    api: "API数据源",
+    clickhouse: "ClickHouse",
+    "local-file": "本地文件",
+    mongodb: "MongoDB",
+    mysql: "MySQL",
+    oracle: "Oracle",
+    postgresql: "PostgreSQL",
+    sqlserver: "SQL Server",
+  };
+
+  return labels[type] ?? type;
+}
+
 function ConnectDatasourceContent() {
   const searchParams = useSearchParams();
-  const datasourceType = searchParams.get("type") ?? "API数据源";
-  const isFileDatasource = datasourceType === "本地文件";
-  const isApiDatasource = datasourceType === "API数据源";
+  const datasourceType = searchParams.get("type") ?? "api";
+  const datasourceName = searchParams.get("name") ?? getDatasourceTypeName(datasourceType);
+  const datasourceId = searchParams.get("datasourceId");
+  const isFileDatasource = datasourceType === "local-file";
+  const isApiDatasource = datasourceType === "api";
   const isDatabaseDatasource = !isFileDatasource && !isApiDatasource;
   const [canGoNext, setCanGoNext] = useState(false);
   const [fileUploaded, setFileUploaded] = useState(false);
   const databaseConnectionTesterRef = useRef<(() => void) | null>(null);
   const databaseDatasourceCreatorRef = useRef<(() => void) | null>(null);
+  const localFileSaverRef = useRef<(() => void) | null>(null);
 
   return (
     <>
@@ -289,7 +333,7 @@ function ConnectDatasourceContent() {
           <h2
             className={isDatabaseDatasource ? "text-base font-semibold" : "text-lg font-semibold"}
           >
-            {isDatabaseDatasource ? `自建数据库 - ${datasourceType}` : datasourceType}
+            {isDatabaseDatasource ? `自建数据库 - ${datasourceName}` : datasourceName}
           </h2>
           {isDatabaseDatasource ? (
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
@@ -322,6 +366,9 @@ function ConnectDatasourceContent() {
 
         {isFileDatasource ? (
           <FileUploadContent
+            onRegisterFileSaver={(saver) => {
+              localFileSaverRef.current = saver;
+            }}
             onValidChange={(isValid) => {
               setCanGoNext(isValid);
               setFileUploaded(isValid);
@@ -331,6 +378,8 @@ function ConnectDatasourceContent() {
           <ApiConnectContent onValidChange={setCanGoNext} />
         ) : (
           <DatabaseConnectContent
+            datasourceId={datasourceId}
+            datasourceName={datasourceName}
             datasourceType={datasourceType}
             onRegisterDatasourceCreator={(creator) => {
               databaseDatasourceCreatorRef.current = creator;
@@ -369,13 +418,17 @@ function ConnectDatasourceContent() {
               <Button onClick={() => databaseDatasourceCreatorRef.current?.()} type="button">
                 确定
               </Button>
+            ) : canGoNext && isFileDatasource ? (
+              <Button onClick={() => localFileSaverRef.current?.()} type="button">
+                下一步
+              </Button>
             ) : canGoNext ? (
               <Button asChild>
                 <Link
                   className="text-#fff!"
-                  href={`/workbench/datasources/create/complete?type=${encodeURIComponent(datasourceType)}`}
+                  href={`/workbench/datasources/create/complete?type=${encodeURIComponent(datasourceType)}&name=${encodeURIComponent(datasourceName)}`}
                 >
-                  {isDatabaseDatasource ? "确定" : "下一步"}
+                  下一步
                 </Link>
               </Button>
             ) : (
@@ -391,23 +444,24 @@ function ConnectDatasourceContent() {
 }
 
 function DatabaseConnectContent({
+  datasourceId,
+  datasourceName,
   datasourceType,
   onRegisterDatasourceCreator,
   onRegisterConnectionTester,
   onValidChange,
 }: {
+  datasourceId: string | null;
+  datasourceName: string;
   datasourceType: string;
   onRegisterDatasourceCreator: (creator: () => void) => void;
   onRegisterConnectionTester: (tester: () => void) => void;
   onValidChange: (isValid: boolean) => void;
 }) {
   const router = useRouter();
-  const defaultPort = datasourceType.includes("PostgreSQL")
-    ? "5432"
-    : datasourceType.includes("MySQL")
-      ? "3306"
-      : "";
-  const defaultSchema = datasourceType.includes("PostgreSQL") ? "public" : "";
+  const defaultPort =
+    datasourceType === "postgresql" ? "5432" : datasourceType === "mysql" ? "3306" : "";
+  const defaultSchema = datasourceType === "postgresql" ? "public" : "";
   const [displayName, setDisplayName] = useState("");
   const [host, setHost] = useState("");
   const [port, setPort] = useState(defaultPort);
@@ -420,9 +474,55 @@ function DatabaseConnectContent({
   const [whitelistCopied, setWhitelistCopied] = useState(false);
   const [messageNotice, setMessageNotice] = useState<MessageNotice | null>(null);
   const messageTimerRef = useRef<number | null>(null);
-  const supportText = datasourceType.includes("PostgreSQL")
-    ? "提示：支持PostgreSQL 8.2及以上版本"
-    : `提示：请确认 ${datasourceType} 数据库网络可访问`;
+  const supportText =
+    datasourceType === "postgresql"
+      ? "提示：支持PostgreSQL 8.2及以上版本"
+      : `提示：请确认 ${datasourceName} 数据库网络可访问`;
+
+  useEffect(() => {
+    if (!datasourceId) {
+      return;
+    }
+
+    let isMounted = true;
+    const activeDatasourceId = datasourceId;
+
+    async function loadDatasourceDetail() {
+      try {
+        const response = await fetch(`/api/datasources/${encodeURIComponent(activeDatasourceId)}`, {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = (await response.json()) as DatasourceDetailResponse;
+        const datasource = data.datasource;
+
+        if (!isMounted || !datasource) {
+          return;
+        }
+
+        setDisplayName(datasource.name ?? "");
+        setHost(datasource.host ?? "");
+        setPort(datasource.port ? String(datasource.port) : defaultPort);
+        setDatabase(datasource.database ?? "");
+        setSchema(datasource.schema ?? defaultSchema);
+        setUsername(datasource.username ?? "");
+        setPassword(datasource.password ?? "");
+        setSslEnabled(Boolean(datasource.ssl));
+      } catch {
+        showMessage("error", "数据源详情加载失败。");
+      }
+    }
+
+    loadDatasourceDetail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [datasourceId, defaultPort, defaultSchema]);
 
   useEffect(() => {
     onValidChange(
@@ -569,37 +669,51 @@ function DatabaseConnectContent({
       return;
     }
 
-    showMessage("loading", "正在创建数据源...", 0);
+    const isEditing = Boolean(datasourceId);
+
+    showMessage("loading", isEditing ? "正在更新数据源..." : "正在创建数据源...", 0);
 
     try {
-      const response = await fetch("/api/datasources", {
-        body: JSON.stringify({
-          database: database.trim(),
-          display_name: displayName.trim(),
-          host: host.trim(),
-          password,
-          port: trimmedPort,
-          schema_name: schema.trim() || undefined,
-          ssl: sslEnabled,
-          type: datasourceType,
-          username: username.trim(),
-        }),
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
-      });
+      const response = await fetch(
+        isEditing
+          ? `/api/datasources/${encodeURIComponent(datasourceId ?? "")}`
+          : "/api/datasources",
+        {
+          body: JSON.stringify({
+            database: database.trim(),
+            display_name: displayName.trim(),
+            host: host.trim(),
+            password,
+            port: trimmedPort,
+            schema_name: schema.trim() || undefined,
+            ssl: sslEnabled,
+            type: datasourceType,
+            username: username.trim(),
+          }),
+          headers: { "Content-Type": "application/json" },
+          method: isEditing ? "PUT" : "POST",
+        },
+      );
       const data = (await response.json()) as CreateDatasourceResponse;
 
       if (!response.ok || !data.ok || !data.datasource?.id) {
-        showMessage("error", data.message || "数据源创建失败。");
+        showMessage("error", data.message || (isEditing ? "数据源更新失败。" : "数据源创建失败。"));
         return;
       }
 
-      showMessage("success", data.message || "数据源创建成功。", 900);
+      showMessage(
+        "success",
+        data.message || (isEditing ? "数据源更新成功。" : "数据源创建成功。"),
+        900,
+      );
       window.setTimeout(() => {
         router.push(`/workbench/datasources?activeDatasourceId=${data.datasource?.id}`);
       }, 700);
     } catch {
-      showMessage("error", "数据源创建失败：无法请求后端服务。");
+      showMessage(
+        "error",
+        isEditing ? "数据源更新失败：无法请求后端服务。" : "数据源创建失败：无法请求后端服务。",
+      );
     }
   }
 
@@ -1136,12 +1250,24 @@ function ApiConnectContent({ onValidChange }: { onValidChange: (isValid: boolean
   );
 }
 
-function FileUploadContent({ onValidChange }: { onValidChange: (isValid: boolean) => void }) {
+function FileUploadContent({
+  onRegisterFileSaver,
+  onValidChange,
+}: {
+  onRegisterFileSaver: (saver: () => void) => void;
+  onValidChange: (isValid: boolean) => void;
+}) {
+  const router = useRouter();
   const [fileName, setFileName] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [parsedSheets, setParsedSheets] = useState<ParsedSheet[]>([]);
   const [activeSheet, setActiveSheet] = useState("");
+  const [selectedSheetKeys, setSelectedSheetKeys] = useState<string[]>([]);
   const [activePreviewTab, setActivePreviewTab] = useState<"detail" | "preview">("preview");
+  const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState("");
+  const [messageNotice, setMessageNotice] = useState<MessageNotice | null>(null);
+  const messageTimerRef = useRef<number | null>(null);
   const displayName = fileName.replace(/\.[^.]+$/, "") || "测试表格";
   const activeSheetData =
     parsedSheets.find((sheet) => sheet.key === activeSheet) ?? parsedSheets[0];
@@ -1157,8 +1283,135 @@ function FileUploadContent({ onValidChange }: { onValidChange: (isValid: boolean
   ];
 
   useEffect(() => {
-    onValidChange(fileName.length > 0);
-  }, [fileName, onValidChange]);
+    onValidChange(
+      Boolean(
+        uploadedFile &&
+        parsedSheets.length > 0 &&
+        selectedSheetKeys.length > 0 &&
+        !parsing &&
+        !parseError,
+      ),
+    );
+  }, [
+    parseError,
+    parsedSheets.length,
+    parsing,
+    selectedSheetKeys.length,
+    uploadedFile,
+    onValidChange,
+  ]);
+
+  useEffect(() => {
+    onRegisterFileSaver(saveLocalFiles);
+  });
+
+  useEffect(() => {
+    return () => {
+      if (messageTimerRef.current) {
+        window.clearTimeout(messageTimerRef.current);
+      }
+    };
+  }, []);
+
+  function showMessage(type: MessageNotice["type"], text: string, duration = 2200) {
+    if (messageTimerRef.current) {
+      window.clearTimeout(messageTimerRef.current);
+      messageTimerRef.current = null;
+    }
+
+    setMessageNotice({ text, type });
+
+    if (duration > 0) {
+      messageTimerRef.current = window.setTimeout(() => {
+        setMessageNotice(null);
+        messageTimerRef.current = null;
+      }, duration);
+    }
+  }
+
+  async function saveLocalFiles() {
+    const selectedSheets = parsedSheets.filter((sheet) => selectedSheetKeys.includes(sheet.key));
+    const selectedSheetNames = selectedSheets.map((sheet) => sheet.name.trim());
+    const duplicatedSheetName = selectedSheetNames.find(
+      (sheetName, index) => sheetName && selectedSheetNames.indexOf(sheetName) !== index,
+    );
+
+    if (!fileName || !uploadedFile || selectedSheets.length === 0) {
+      showMessage("error", "请先上传并解析文件。");
+      return;
+    }
+
+    if (duplicatedSheetName) {
+      showMessage("error", `表名称不能重复：${duplicatedSheetName}。`);
+      return;
+    }
+
+    showMessage("loading", "正在保存本地文件...", 0);
+
+    try {
+      const uploadUrlResponse = await fetch("/api/uploads/presigned-url", {
+        body: JSON.stringify({
+          content_type: uploadedFile.type || "application/octet-stream",
+          filename: uploadedFile.name,
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+
+      if (!uploadUrlResponse.ok) {
+        showMessage("error", "文件存储服务不可用，请检查 MinIO。");
+        return;
+      }
+
+      const uploadData = (await uploadUrlResponse.json()) as CreateUploadUrlResponse;
+      const uploadResponse = await fetch(uploadData.upload_url, {
+        body: uploadedFile,
+        headers: { "Content-Type": uploadedFile.type || "application/octet-stream" },
+        method: "PUT",
+      });
+
+      if (!uploadResponse.ok) {
+        showMessage("error", "文件上传到 MinIO 失败。");
+        return;
+      }
+
+      const response = await fetch("/api/local-files", {
+        body: JSON.stringify({
+          bucket: uploadData.bucket,
+          content_type: uploadedFile.type || "application/octet-stream",
+          file_name: fileName,
+          file_size: uploadedFile.size,
+          object_key: uploadData.object_key,
+          sheets: selectedSheets.map((sheet) => ({
+            display_name: sheet.name,
+            fields: sheet.fields.map((field) => ({
+              display_name: field.label,
+              name: field.label,
+              source_name: field.label,
+              type: field.type,
+            })),
+            header_row: 1,
+            sheet_name: sheet.name,
+          })),
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+      const data = (await response.json()) as CreateLocalFilesResponse;
+
+      if (!response.ok || !data.ok) {
+        showMessage("error", data.message || "本地文件保存失败。");
+        return;
+      }
+
+      showMessage("success", data.message || "本地文件保存成功。", 900);
+      window.setTimeout(() => {
+        router.push("/workbench/datasources?activeDatasourceId=local-file");
+      }, 700);
+    } catch {
+      showMessage("error", "本地文件保存失败：无法请求后端服务。");
+    }
+  }
 
   function changeFieldType(fieldKey: string, fieldType: FieldType) {
     setParsedSheets((currentSheets) =>
@@ -1182,60 +1435,144 @@ function FileUploadContent({ onValidChange }: { onValidChange: (isValid: boolean
 
   async function handleFileChange(file: File | null) {
     if (!file) {
-      setFileName("");
-      setParsedSheets([]);
-      setActiveSheet("");
-      setParseError("");
+      resetUpload();
+      return;
+    }
+
+    const supportedExtensions = [".csv", ".xlsx", ".xls"];
+    const lowerFileName = file.name.toLowerCase();
+    const supported = supportedExtensions.some((extension) => lowerFileName.endsWith(extension));
+    const maxSize = 50 * 1024 * 1024;
+
+    if (!supported) {
+      resetUpload();
+      setParseError("文件只支持 .csv、.xlsx、.xls 格式。");
+      return;
+    }
+
+    if (file.size > maxSize) {
+      resetUpload();
+      setParseError("单个文件大小不能超过 50M。");
       return;
     }
 
     setFileName(file.name);
+    setUploadedFile(file);
+    setParsedSheets([]);
+    setActiveSheet("");
+    setActivePreviewTab("preview");
     setParseError("");
+    setParsing(true);
 
     try {
       const sheets = await parseWorkbook(file);
+
+      if (sheets.length === 0) {
+        throw new Error("empty workbook");
+      }
+
       setParsedSheets(sheets);
       setActiveSheet(sheets[0]?.key ?? "");
+      setSelectedSheetKeys(sheets.map((sheet) => sheet.key));
     } catch {
       setParsedSheets([]);
       setActiveSheet("");
+      setSelectedSheetKeys([]);
       setParseError("文件解析失败，请确认文件格式是否正确。");
+    } finally {
+      setParsing(false);
     }
+  }
+
+  function resetUpload() {
+    setFileName("");
+    setUploadedFile(null);
+    setParsedSheets([]);
+    setActiveSheet("");
+    setSelectedSheetKeys([]);
+    setActivePreviewTab("preview");
+    setParsing(false);
+    setParseError("");
+  }
+
+  function toggleSheetSelection(sheetKey: string) {
+    setSelectedSheetKeys((currentKeys) =>
+      currentKeys.includes(sheetKey)
+        ? currentKeys.filter((currentKey) => currentKey !== sheetKey)
+        : [...currentKeys, sheetKey],
+    );
   }
 
   if (fileName) {
     return (
       <div className="px-8 py-7">
+        {messageNotice ? <MessageNotice notice={messageNotice} /> : null}
         <div className="min-h-[520px] rounded-2xl bg-[#f5f8fc] p-5">
           <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-            <div className="flex h-10 items-center justify-between bg-[#f3f6fb] px-5">
-              <div className="flex h-full items-center text-sm font-medium">
-                {parsedSheets.map((sheet, index) => (
-                  <button
-                    className={
-                      activeSheet === sheet.key
-                        ? "flex h-full min-w-56 items-center gap-2 rounded-t-lg bg-white px-5 text-foreground"
-                        : "flex h-full min-w-56 items-center gap-2 px-5 text-muted-foreground transition-colors hover:text-foreground"
-                    }
-                    key={sheet.key}
-                    onClick={() => setActiveSheet(sheet.key)}
-                    type="button"
+            <div className="flex items-center justify-between bg-[#f3f6fb] px-5">
+              <div className="flex min-w-0 flex-1 items-center overflow-hidden text-sm font-medium">
+                {parsing ? <span className="text-muted-foreground">正在解析文件...</span> : null}
+                {!parsing && parsedSheets.length === 0 ? (
+                  <span className="text-muted-foreground">暂无可预览的 Sheet</span>
+                ) : null}
+                {parsedSheets.length > 0 ? (
+                  <Tabs
+                    className="min-w-0 flex-1 gap-0"
+                    value={activeSheet}
+                    onValueChange={setActiveSheet}
                   >
-                    <input
-                      className="size-4 accent-primary"
-                      defaultChecked
-                      readOnly
-                      type="checkbox"
-                    />
-                    {sheet.name}
-                    {index < parsedSheets.length - 1 ? (
-                      <span className="ml-auto h-5 w-px bg-black/10" />
-                    ) : null}
-                  </button>
-                ))}
+                    <TabsList className="h-auto w-full justify-start overflow-hidden rounded-none bg-transparent p-0">
+                      {parsedSheets.map((sheet, index) => (
+                        <div
+                          className={
+                            activeSheet === sheet.key
+                              ? "flex flex-none items-center rounded-t-lg bg-white text-foreground"
+                              : "flex flex-none items-center text-muted-foreground transition-colors hover:text-foreground"
+                          }
+                          key={sheet.key}
+                        >
+                          <input
+                            aria-label={`选择 ${sheet.name}`}
+                            checked={selectedSheetKeys.includes(sheet.key)}
+                            className="ml-5 size-4 shrink-0 accent-primary"
+                            onChange={() => toggleSheetSelection(sheet.key)}
+                            onClick={(event) => event.stopPropagation()}
+                            type="checkbox"
+                          />
+                          <TabsTrigger
+                            className="h-auto justify-start rounded-none border-0 bg-transparent py-3 pr-5 pl-2 text-inherit shadow-none data-active:bg-transparent data-active:text-inherit data-active:shadow-none"
+                            value={sheet.key}
+                          >
+                            <span className="truncate">{sheet.name}</span>
+                          </TabsTrigger>
+                          {index < parsedSheets.length - 1 &&
+                          activeSheet !== sheet.key &&
+                          activeSheet !== parsedSheets[index + 1]?.key ? (
+                            <span className="mr-0 h-5 w-px bg-black/10" />
+                          ) : null}
+                        </div>
+                      ))}
+                    </TabsList>
+                  </Tabs>
+                ) : null}
               </div>
-              <ChevronDown className="size-4 text-muted-foreground" />
+              <Button
+                className="ml-4 shrink-0"
+                onClick={resetUpload}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                <RotateCcw className="size-3.5" />
+                重新上传
+              </Button>
             </div>
+
+            {parseError ? (
+              <div className="mx-5 mt-5 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                {parseError}
+              </div>
+            ) : null}
 
             <div className="flex items-center justify-between px-5 pt-5">
               <label className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -1291,13 +1628,17 @@ function FileUploadContent({ onValidChange }: { onValidChange: (isValid: boolean
                 </button>
               </div>
 
-              {activePreviewTab === "detail" ? (
+              {parsing ? (
+                <div className="rounded-md border border-dashed border-border py-20 text-center text-sm text-muted-foreground">
+                  正在解析并识别字段类型...
+                </div>
+              ) : activePreviewTab === "detail" ? (
                 <div className="w-[760px] overflow-visible text-sm">
                   <Table containerClassName="overflow-visible">
                     <TableHeader>
                       <TableRow className="bg-[#f3f5fa] hover:bg-[#f3f5fa]">
-                        <TableHead>文件列名</TableHead>
-                        <TableHead>数据库字段名称</TableHead>
+                        <TableHead>源字段</TableHead>
+                        <TableHead>字段别名</TableHead>
                         <TableHead className="w-44">字段类型</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1305,7 +1646,7 @@ function FileUploadContent({ onValidChange }: { onValidChange: (isValid: boolean
                       {fields.map((field) => (
                         <TableRow className="hover:bg-transparent" key={field.key}>
                           <TableCell>
-                            <Input className="h-8 rounded-md bg-white" defaultValue={field.label} />
+                            <span className="text-muted-foreground">{field.label}</span>
                           </TableCell>
                           <TableCell>
                             <Input className="h-8 rounded-md bg-white" defaultValue={field.label} />
@@ -1373,6 +1714,7 @@ function FileUploadContent({ onValidChange }: { onValidChange: (isValid: boolean
 
   return (
     <div className="flex flex-col items-center px-8 py-8">
+      {messageNotice ? <MessageNotice notice={messageNotice} /> : null}
       <FileUpload
         accept=".csv,.xlsx,.xls"
         className="max-w-2xl"
@@ -1380,6 +1722,7 @@ function FileUploadContent({ onValidChange }: { onValidChange: (isValid: boolean
         onFileChange={handleFileChange}
       />
       {parseError ? <p className="mt-3 text-sm text-destructive">{parseError}</p> : null}
+      {parsing ? <p className="mt-3 text-sm text-muted-foreground">正在解析文件...</p> : null}
 
       <div className="mt-12 w-full max-w-2xl">
         <div className="mb-5 flex items-center gap-4">

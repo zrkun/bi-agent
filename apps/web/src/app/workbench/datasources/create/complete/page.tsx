@@ -4,6 +4,7 @@ import { ArrowLeft, Check, Database } from "lucide-react";
 
 type CompleteDatasourcePageProps = {
   searchParams: Promise<{
+    name?: string;
     type?: string;
   }>;
 };
@@ -12,7 +13,7 @@ export default async function CompleteDatasourcePage({
   searchParams,
 }: CompleteDatasourcePageProps) {
   const params = await searchParams;
-  const datasourceType = params.type ?? "数据源";
+  const datasourceName = params.name ?? params.type ?? "数据源";
 
   return (
     <>
@@ -45,7 +46,7 @@ export default async function CompleteDatasourcePage({
         </div>
         <h2 className="mt-8 text-xl font-semibold">数据源创建完成</h2>
         <p className="mt-3 text-sm text-muted-foreground">
-          {datasourceType} 已完成创建流程，后续可以进入数据集或智能小Q中使用。
+          {datasourceName} 已完成创建流程，后续可以进入数据集或智能小Q中使用。
         </p>
         <div className="mt-8 flex gap-3">
           <Button asChild variant="outline">

@@ -21,13 +21,13 @@ import {
   BarChart3,
   Database,
   FileBarChart,
-  LayoutDashboard,
+  Sparkles,
   UsersRound,
   Waves,
 } from "lucide-react";
 
 const analysisItems = [
-  { label: "仪表板", href: "/workbench/dashboards", icon: LayoutDashboard },
+  { label: "智能体小Q", href: "/agent", icon: Sparkles },
   { label: "数据大屏", href: "/workbench/screens", icon: FileBarChart },
 ];
 
@@ -42,7 +42,7 @@ export default function WorkbenchLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <AppShell active="workbench" contentClassName="overflow-hidden bg-[#eef2f6]">
+    <AppShell contentClassName="overflow-hidden bg-[#eef2f6]">
       <SidebarProvider className="h-full">
         <Sidebar className="w-64 bg-[#f8fafb]">
           <SidebarHeader className="px-6 pt-7 pb-6">
@@ -95,7 +95,7 @@ export default function WorkbenchLayout({ children }: { children: ReactNode }) {
         </Sidebar>
 
         <SidebarInset className="min-h-0 overflow-y-auto bg-[linear-gradient(180deg,#eaf5ff_0%,#f7fbff_24%,#f5f7fb_100%)]">
-          <div className="min-h-full px-8 pt-8 pb-12">{children}</div>
+          <div className="flex h-full min-h-0 flex-col px-8 pt-8 pb-12">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </AppShell>

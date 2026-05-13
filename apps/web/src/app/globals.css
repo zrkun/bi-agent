@@ -159,3 +159,92 @@ a {
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .agent-conversation-scroll > div {
+    scrollbar-gutter: auto !important;
+    scrollbar-width: none;
+  }
+
+  .agent-conversation-scroll > div::-webkit-scrollbar {
+    display: none;
+  }
+
+  .screen-editor-scrollbar {
+    color-scheme: dark;
+    scrollbar-color: #5b6470 #1c2026 !important;
+    scrollbar-width: thin !important;
+  }
+
+  .screen-editor-shell * {
+    scrollbar-color: #5b6470 #1c2026;
+    scrollbar-width: thin;
+  }
+
+  .screen-editor-scrollbar::-webkit-scrollbar,
+  .screen-editor-shell *::-webkit-scrollbar {
+    height: 10px !important;
+    width: 10px !important;
+  }
+
+  .screen-editor-scrollbar::-webkit-scrollbar-track,
+  .screen-editor-shell *::-webkit-scrollbar-track {
+    background: #1c2026 !important;
+    border-left: 1px solid rgb(255 255 255 / 6%);
+    border-top: 1px solid rgb(255 255 255 / 6%);
+  }
+
+  .screen-editor-scrollbar::-webkit-scrollbar-thumb,
+  .screen-editor-shell *::-webkit-scrollbar-thumb {
+    background: #59616d !important;
+    border: 2px solid #1c2026 !important;
+    border-radius: 999px !important;
+  }
+
+  .screen-editor-scrollbar::-webkit-scrollbar-thumb:hover,
+  .screen-editor-shell *::-webkit-scrollbar-thumb:hover {
+    background: #717b89 !important;
+  }
+
+  .screen-editor-scrollbar::-webkit-scrollbar-corner,
+  .screen-editor-shell *::-webkit-scrollbar-corner {
+    background: #1c2026 !important;
+  }
+
+  .screen-editor-select-content [data-slot="select-item"] {
+    background: transparent !important;
+    border-left: 2px solid transparent;
+    color: #d8dce3;
+  }
+
+  .screen-editor-select-content [data-slot="select-item"]:hover,
+  .screen-editor-select-content [data-slot="select-item"]:focus,
+  .screen-editor-select-content [data-slot="select-item"][data-highlighted] {
+    background: rgb(255 255 255 / 8%) !important;
+    color: #ffffff !important;
+  }
+
+  .screen-editor-select-content [data-slot="select-item"][data-state="checked"] {
+    background: transparent !important;
+    border-left-color: #6f82ff;
+    color: #ffffff !important;
+  }
+
+  .screen-editor-select-content [data-slot="select-item"][data-state="checked"][data-highlighted] {
+    background: rgb(255 255 255 / 8%) !important;
+  }
+
+  .screen-editor-select-content [data-slot="select-item"] [data-slot="select-item-indicator"] {
+    color: #9fb0ff;
+  }
+
+}
+
+@keyframes agent-loading {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(360%);
+  }
+}

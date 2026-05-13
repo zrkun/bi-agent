@@ -4,6 +4,7 @@ export type DatasourceTypeItem = {
   description: string;
   icon: string;
   name: string;
+  type: string;
 };
 
 export type DatasourceTypeCategory = {

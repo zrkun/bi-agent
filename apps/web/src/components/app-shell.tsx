@@ -5,18 +5,12 @@ import { Bell, Grid3X3, Search, Settings, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { key: "agent", href: "/agent", label: "智能小Q" },
-  { key: "workbench", href: "/workbench", label: "工作台" },
-];
-
 type AppShellProps = {
-  active?: string;
   children: ReactNode;
   contentClassName?: string;
 };
 
-export function AppShell({ active = "agent", children, contentClassName }: AppShellProps) {
+export function AppShell({ children, contentClassName }: AppShellProps) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background">
       <header className="z-20 shrink-0 bg-background/95 shadow-[0_8px_28px_rgba(15,23,42,0.08)] backdrop-blur">
@@ -28,23 +22,7 @@ export function AppShell({ active = "agent", children, contentClassName }: AppSh
             <span>Quick</span>
             <span className="ml-1 text-primary">BI</span>
           </Link>
-          <nav className="flex flex-1 items-center justify-center gap-7">
-            {navItems.map((item) => (
-              <Link
-                key={item.key}
-                href={item.href}
-                className={cn(
-                  "relative py-4 text-sm text-muted-foreground transition-colors hover:text-foreground",
-                  active === item.key && "font-medium text-primary",
-                )}
-              >
-                {item.label}
-                {active === item.key ? (
-                  <span className="absolute inset-x-1 -bottom-px h-0.5 rounded-full bg-primary" />
-                ) : null}
-              </Link>
-            ))}
-          </nav>
+          <div className="flex flex-1" />
           <div className="ml-10 flex items-center gap-1">
             {[Search, Grid3X3, Bell, Settings].map((Icon) => (
               <Button

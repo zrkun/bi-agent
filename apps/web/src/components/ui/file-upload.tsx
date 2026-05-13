@@ -24,12 +24,41 @@ function FileUpload({
     </>
   ),
 }: FileUploadProps) {
+  const [dragActive, setDragActive] = React.useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  function emitFile(file: File | null) {
+    onFileChange?.(file);
+
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  }
+
   return (
     <label
       className={cn(
         "flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-muted-foreground/30 bg-[#f7f9fc] px-8 py-8 text-center transition-colors hover:border-primary/50 hover:bg-primary/5",
+        dragActive && "border-primary/70 bg-primary/10",
         className,
       )}
+      onDragEnter={(event) => {
+        event.preventDefault();
+        setDragActive(true);
+      }}
+      onDragLeave={(event) => {
+        event.preventDefault();
+        setDragActive(false);
+      }}
+      onDragOver={(event) => {
+        event.preventDefault();
+        setDragActive(true);
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        setDragActive(false);
+        emitFile(event.dataTransfer.files?.[0] ?? null);
+      }}
     >
       <Upload className="size-9 text-muted-foreground" />
       <span className="mt-4 text-sm">{title}</span>
@@ -38,7 +67,8 @@ function FileUpload({
       <input
         accept={accept}
         className="hidden"
-        onChange={(event) => onFileChange?.(event.target.files?.[0] ?? null)}
+        onChange={(event) => emitFile(event.target.files?.[0] ?? null)}
+        ref={inputRef}
         type="file"
       />
     </label>
