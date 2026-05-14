@@ -159,7 +159,7 @@ type AgentEvent = {
   type: string;
 };
 
-export function AgentWorkbench() {
+export default function AgentPage() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [input, setInput] = useState("");
   const [isRunLoading, setIsRunLoading] = useState(false);

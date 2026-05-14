@@ -16,7 +16,7 @@ export function AppShell({ children, contentClassName }: AppShellProps) {
       <header className="z-20 shrink-0 bg-background/95 shadow-[0_8px_28px_rgba(15,23,42,0.08)] backdrop-blur">
         <div className="flex h-14 items-center px-5">
           <Link
-            href="/"
+            href="/agent"
             className="mr-10 flex items-center text-2xl font-semibold tracking-tight"
           >
             <span>Quick</span>

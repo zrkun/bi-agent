@@ -1,5 +1,5 @@
-import { AgentWorkbench } from "@/components/agent/agent-workbench";
+import { redirect } from "next/navigation";
 
-export default function WorkbenchPage() {
-  return <AgentWorkbench />;
+export default function HomePage() {
+  redirect("/agent");
 }

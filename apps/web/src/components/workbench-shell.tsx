@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 const analysisItems = [
-  { label: "智能体小Q", href: "/", icon: Sparkles },
+  { label: "智能体小Q", href: "/agent", icon: Sparkles },
   { label: "数据大屏", href: "/screens", icon: FileBarChart },
 ];
 
@@ -95,7 +95,7 @@ export function WorkbenchShell({ children }: { children: ReactNode }) {
         </Sidebar>
 
         <SidebarInset className="min-h-0 overflow-y-auto bg-[linear-gradient(180deg,#eaf5ff_0%,#f7fbff_24%,#f5f7fb_100%)]">
-          <div className="flex h-full min-h-0 flex-col px-8 pt-8 pb-12">{children}</div>
+          <div className="flex min-h-full flex-col px-8 pt-8 pb-12">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </AppShell>
