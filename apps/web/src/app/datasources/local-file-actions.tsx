@@ -316,7 +316,7 @@ export function LocalFileActions({ displayName, headerRow, itemId }: LocalFileAc
         </AlertDialog>
         <Button asChild className="text-primary" disabled={pending} size="sm" variant="link">
           <Link
-            href={`/workbench/datasets/create?datasourceId=local-file&table=${encodeURIComponent(itemId)}`}
+            href={`/datasets/create?datasourceId=local-file&table=${encodeURIComponent(itemId)}`}
           >
             创建数据集
           </Link>

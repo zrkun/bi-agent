@@ -111,7 +111,7 @@ export default async function DatasourcesPage({ searchParams }: DatasourcesPageP
       <WorkbenchPageHeader
         action={
           <Button asChild>
-            <Link className="text-#fff!" href="/workbench/datasources/create">
+            <Link className="text-#fff!" href="/datasources/create">
               新建数据源
             </Link>
           </Button>
@@ -186,7 +186,7 @@ function DatasourceListItem({
     >
       <Link
         className="flex min-w-0 flex-1 items-center gap-3"
-        href={`/workbench/datasources?activeDatasourceId=${encodeURIComponent(datasource.id)}`}
+        href={`/datasources?activeDatasourceId=${encodeURIComponent(datasource.id)}`}
       >
         <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/90 text-primary shadow-sm">
           {datasource.id === "local-file" ? (
@@ -207,7 +207,7 @@ function DatasourceListItem({
           <Button asChild size="icon-xs" variant="ghost">
             <Link
               aria-label={`编辑 ${datasource.name}`}
-              href={`/workbench/datasources/create/connect?type=${encodeURIComponent(datasource.type)}&datasourceId=${encodeURIComponent(datasource.id)}`}
+              href={`/datasources/create/connect?type=${encodeURIComponent(datasource.type)}&datasourceId=${encodeURIComponent(datasource.id)}`}
             >
               <Pencil className="size-3.5" />
             </Link>
@@ -261,7 +261,7 @@ function DatasourceDetail({
                         <TablePreviewDialog datasourceId={datasource.id} table={table} />
                         <Button asChild size="sm" variant="link">
                           <Link
-                            href={`/workbench/datasets/create?datasourceId=${encodeURIComponent(datasource.id)}&table=${encodeURIComponent(table.id)}`}
+                            href={`/datasets/create?datasourceId=${encodeURIComponent(datasource.id)}&table=${encodeURIComponent(table.id)}`}
                           >
                             创建数据集
                           </Link>
@@ -313,7 +313,7 @@ function DatasourceOption({ option }: { option: DatasourceTypeItem }) {
   return (
     <Link
       className="flex h-20 items-center gap-4 rounded-2xl bg-[#f3f6fa] px-5 text-left transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
-      href={`/workbench/datasources/create/connect?type=${encodeURIComponent(option.type)}&name=${encodeURIComponent(option.name)}`}
+      href={`/datasources/create/connect?type=${encodeURIComponent(option.type)}&name=${encodeURIComponent(option.name)}`}
     >
       <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-white text-primary shadow-sm">
         <Icon className="size-5" />

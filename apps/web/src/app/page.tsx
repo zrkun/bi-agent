@@ -1,5 +1,5 @@
-import AgentPage from "@/app/agent/page";
+import { AgentWorkbench } from "@/components/agent/agent-workbench";
 
-export default function Home() {
-  return <AgentPage />;
+export default function WorkbenchPage() {
+  return <AgentWorkbench />;
 }

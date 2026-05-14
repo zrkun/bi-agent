@@ -27,18 +27,18 @@ import {
 } from "lucide-react";
 
 const analysisItems = [
-  { label: "智能体小Q", href: "/agent", icon: Sparkles },
-  { label: "数据大屏", href: "/workbench/screens", icon: FileBarChart },
+  { label: "智能体小Q", href: "/", icon: Sparkles },
+  { label: "数据大屏", href: "/screens", icon: FileBarChart },
 ];
 
 const buildItems = [
-  { label: "数据集", href: "/workbench/datasets", icon: BarChart3 },
-  { label: "数据源", href: "/workbench/datasources", icon: Database },
+  { label: "数据集", href: "/datasets", icon: BarChart3 },
+  { label: "数据源", href: "/datasources", icon: Database },
 ];
 
-const manageItems = [{ label: "成员与权限", href: "/workbench/members", icon: UsersRound }];
+const manageItems = [{ label: "成员与权限", href: "/members", icon: UsersRound }];
 
-export default function WorkbenchLayout({ children }: { children: ReactNode }) {
+export function WorkbenchShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
@@ -65,7 +65,7 @@ export default function WorkbenchLayout({ children }: { children: ReactNode }) {
                   icon={item.icon}
                   href={item.href}
                   label={item.label}
-                  active={pathname.startsWith(item.href)}
+                  active={item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)}
                 />
               ))}
             </WorkbenchSidebarGroup>
@@ -76,7 +76,7 @@ export default function WorkbenchLayout({ children }: { children: ReactNode }) {
                   icon={item.icon}
                   href={item.href}
                   label={item.label}
-                  active={pathname.startsWith(item.href)}
+                  active={item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)}
                 />
               ))}
             </WorkbenchSidebarGroup>
@@ -87,7 +87,7 @@ export default function WorkbenchLayout({ children }: { children: ReactNode }) {
                   icon={item.icon}
                   href={item.href}
                   label={item.label}
-                  active={pathname.startsWith(item.href)}
+                  active={item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)}
                 />
               ))}
             </WorkbenchSidebarGroup>

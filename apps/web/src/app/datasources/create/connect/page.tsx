@@ -290,7 +290,7 @@ function ConnectDatasourceContent() {
       <div className="flex h-16 items-center justify-between">
         <Link
           className="inline-flex items-center gap-2 text-base font-semibold transition-colors hover:text-primary"
-          href="/workbench/datasources/create"
+          href="/datasources/create"
         >
           <ArrowLeft className="size-5" />
           新建数据源
@@ -402,7 +402,7 @@ function ConnectDatasourceContent() {
             {isFileDatasource ? null : (
               <>
                 <Button asChild variant="outline">
-                  <Link href="/workbench/datasources/create">取消</Link>
+                  <Link href="/datasources/create">取消</Link>
                 </Button>
                 <Button
                   disabled={!isDatabaseDatasource}
@@ -426,7 +426,7 @@ function ConnectDatasourceContent() {
               <Button asChild>
                 <Link
                   className="text-#fff!"
-                  href={`/workbench/datasources/create/complete?type=${encodeURIComponent(datasourceType)}&name=${encodeURIComponent(datasourceName)}`}
+                  href={`/datasources/create/complete?type=${encodeURIComponent(datasourceType)}&name=${encodeURIComponent(datasourceName)}`}
                 >
                   下一步
                 </Link>
@@ -707,7 +707,7 @@ function DatabaseConnectContent({
         900,
       );
       window.setTimeout(() => {
-        router.push(`/workbench/datasources?activeDatasourceId=${data.datasource?.id}`);
+        router.push(`/datasources?activeDatasourceId=${data.datasource?.id}`);
       }, 700);
     } catch {
       showMessage(
@@ -1406,7 +1406,7 @@ function FileUploadContent({
 
       showMessage("success", data.message || "本地文件保存成功。", 900);
       window.setTimeout(() => {
-        router.push("/workbench/datasources?activeDatasourceId=local-file");
+        router.push("/datasources?activeDatasourceId=local-file");
       }, 700);
     } catch {
       showMessage("error", "本地文件保存失败：无法请求后端服务。");

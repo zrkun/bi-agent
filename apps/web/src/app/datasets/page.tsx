@@ -45,7 +45,7 @@ export default async function DatasetsPage() {
       <WorkbenchPageHeader
         action={
           <Button asChild>
-            <Link className="text-#fff!" href="/workbench/datasets/create">
+            <Link className="text-#fff!" href="/datasets/create">
               新建数据集
             </Link>
           </Button>

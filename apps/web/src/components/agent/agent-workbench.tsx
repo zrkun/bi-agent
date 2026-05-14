@@ -55,7 +55,6 @@ import {
   WebPreviewNavigationButton,
   WebPreviewUrl,
 } from "@/components/ai-elements/web-preview";
-import { AppShell } from "@/components/app-shell";
 import { ScreenPreview } from "@/components/screens/screen-preview";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -160,7 +159,7 @@ type AgentEvent = {
   type: string;
 };
 
-export default function AgentPage() {
+export function AgentWorkbench() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [input, setInput] = useState("");
   const [isRunLoading, setIsRunLoading] = useState(false);
@@ -602,112 +601,110 @@ export default function AgentPage() {
   const isSessionLoading = isRunLoading || isStreaming;
 
   return (
-    <AppShell contentClassName="bg-[linear-gradient(115deg,#fbf9fc_0%,#f4f8fb_48%,#f8fbfd_100%)]">
-      <section
+    <section
+      className={cn(
+        "mx-auto flex h-full min-h-0 w-full",
+        previewArtifact ? "gap-4" : "max-w-[1080px] flex-col",
+        messages.length === 0 && !previewArtifact && "justify-center",
+      )}
+    >
+      <div
         className={cn(
-          "mx-auto flex h-full min-h-0 w-full pt-6 pb-6",
-          previewArtifact ? "gap-4 px-6" : "max-w-[1080px] flex-col",
-          messages.length === 0 && !previewArtifact && "justify-center px-6",
+          "mx-auto flex min-h-0 w-full flex-col",
+          previewArtifact ? "max-w-[720px] flex-1" : "max-w-[1080px]",
+          messages.length > 0 && "h-full",
+          messages.length > 0 && "bg-transparent",
+          messages.length === 0 && "px-0",
         )}
       >
+        {messages.length > 0 ? (
+          <MessageList messages={messages} onOpenPreview={setPreviewArtifact} />
+        ) : null}
+
         <div
           className={cn(
-            "mx-auto flex min-h-0 w-full flex-col",
-            previewArtifact ? "max-w-[720px] flex-1" : "max-w-[1080px]",
-            messages.length > 0 && "h-full",
-            messages.length > 0 && "bg-transparent",
-            messages.length === 0 && "px-0",
+            "mx-auto w-full shrink-0",
+            messages.length > 0 && "mt-auto bg-transparent pt-3",
           )}
         >
-          {messages.length > 0 ? (
-            <MessageList messages={messages} onOpenPreview={setPreviewArtifact} />
-          ) : null}
-
-          <div
-            className={cn(
-              "mx-auto w-full shrink-0",
-              messages.length > 0 && "mt-auto bg-transparent pt-3",
-            )}
+          <PromptInput
+            className="relative [&_[data-slot=input-group]]:min-h-28 [&_[data-slot=input-group]]:items-stretch [&_[data-slot=input-group]]:rounded-2xl [&_[data-slot=input-group]]:border-[#e7ecf2] [&_[data-slot=input-group]]:bg-white [&_[data-slot=input-group]]:shadow-[0_18px_45px_rgba(15,23,42,0.10),0_1px_0_rgba(255,255,255,0.95)_inset] [&_[data-slot=input-group]:has(:disabled)]:bg-white [&_[data-slot=input-group]:has(:disabled)]:opacity-100 [&_[data-slot=input-group-control]]:text-[15px] [&_[data-slot=input-group-control]]:placeholder:text-muted-foreground/65"
+            onSubmit={() => {
+              void submitMessage(input);
+            }}
           >
-            <PromptInput
-              className="relative [&_[data-slot=input-group]]:min-h-28 [&_[data-slot=input-group]]:items-stretch [&_[data-slot=input-group]]:rounded-2xl [&_[data-slot=input-group]]:border-[#e7ecf2] [&_[data-slot=input-group]]:bg-white [&_[data-slot=input-group]]:shadow-[0_18px_45px_rgba(15,23,42,0.10),0_1px_0_rgba(255,255,255,0.95)_inset] [&_[data-slot=input-group]:has(:disabled)]:bg-white [&_[data-slot=input-group]:has(:disabled)]:opacity-100 [&_[data-slot=input-group-control]]:text-[15px] [&_[data-slot=input-group-control]]:placeholder:text-muted-foreground/65"
-              onSubmit={() => {
-                void submitMessage(input);
-              }}
-            >
-              {selectedDatasetMention ? (
-                <PromptInputHeader className="px-4 pt-3 pb-0">
-                  <DatasetMentionTag
-                    selectedDataset={selectedDatasetMention}
-                    onRemove={() => {
-                      setSelectedDatasetMention(null);
-                      setSelectedDatasetId("");
-                    }}
-                  />
-                </PromptInputHeader>
-              ) : null}
-              <PromptInputBody>
-                <PromptInputTextarea
-                  className="min-h-16 px-4 pt-3.5 text-[14px]"
-                  onChange={(event) => setInput(event.target.value)}
-                  placeholder="问小Q任何数据问题"
-                  value={input}
+            {selectedDatasetMention ? (
+              <PromptInputHeader className="px-4 pt-3 pb-0">
+                <DatasetMentionTag
+                  selectedDataset={selectedDatasetMention}
+                  onRemove={() => {
+                    setSelectedDatasetMention(null);
+                    setSelectedDatasetId("");
+                  }}
                 />
-              </PromptInputBody>
-              <PromptInputFooter>
-                <PromptInputTools className="flex-wrap">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <PromptInputButton
-                        className="h-8 rounded-lg border border-border bg-background px-3 text-sm hover:bg-muted"
-                        type="button"
-                      >
-                        <Database className="size-4" />
-                        {selectedDatasetMention?.name ?? "选择数据集"}
-                        <ChevronDown className="size-3.5 text-muted-foreground" />
-                      </PromptInputButton>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-auto min-w-32 max-w-56">
-                      {datasets.map((dataset) => (
-                        <DropdownMenuItem
-                          key={dataset.id}
-                          onClick={() => {
-                            setSelectedDatasetId(dataset.id);
-                            setSelectedDatasetMention(dataset);
-                          }}
-                        >
-                          {dataset.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </PromptInputTools>
-                <PromptInputSubmit
-                  aria-label="发送"
-                  className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:bg-muted-foreground/35 disabled:text-background disabled:opacity-100"
-                  disabled={!input.trim() || isSessionLoading}
-                  status={isSessionLoading ? "submitted" : "ready"}
-                >
-                  {isSessionLoading ? null : <Send />}
-                </PromptInputSubmit>
-              </PromptInputFooter>
-            </PromptInput>
-
-            {messages.length === 0 ? (
-              <PromptCards prompts={prompts} onSelect={(prompt) => void submitMessage(prompt)} />
+              </PromptInputHeader>
             ) : null}
-          </div>
+            <PromptInputBody>
+              <PromptInputTextarea
+                className="min-h-16 px-4 pt-3.5 text-[14px]"
+                onChange={(event) => setInput(event.target.value)}
+                placeholder="问小Q任何数据问题"
+                value={input}
+              />
+            </PromptInputBody>
+            <PromptInputFooter>
+              <PromptInputTools className="flex-wrap">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <PromptInputButton
+                      className="h-8 rounded-lg border border-border bg-background px-3 text-sm hover:bg-muted"
+                      type="button"
+                    >
+                      <Database className="size-4" />
+                      {selectedDatasetMention?.name ?? "选择数据集"}
+                      <ChevronDown className="size-3.5 text-muted-foreground" />
+                    </PromptInputButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-auto min-w-32 max-w-56">
+                    {datasets.map((dataset) => (
+                      <DropdownMenuItem
+                        key={dataset.id}
+                        onClick={() => {
+                          setSelectedDatasetId(dataset.id);
+                          setSelectedDatasetMention(dataset);
+                        }}
+                      >
+                        {dataset.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </PromptInputTools>
+              <PromptInputSubmit
+                aria-label="发送"
+                className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:bg-muted-foreground/35 disabled:text-background disabled:opacity-100"
+                disabled={!input.trim() || isSessionLoading}
+                status={isSessionLoading ? "submitted" : "ready"}
+              >
+                {isSessionLoading ? null : <Send />}
+              </PromptInputSubmit>
+            </PromptInputFooter>
+          </PromptInput>
+
+          {messages.length === 0 ? (
+            <PromptCards prompts={prompts} onSelect={(prompt) => void submitMessage(prompt)} />
+          ) : null}
         </div>
-        {previewArtifact ? (
-          <ScreenPreviewPanel
-            artifact={previewArtifact}
-            onClose={() => setPreviewArtifact(null)}
-            onResize={setPreviewWidth}
-            width={previewWidth}
-          />
-        ) : null}
-      </section>
-    </AppShell>
+      </div>
+      {previewArtifact ? (
+        <ScreenPreviewPanel
+          artifact={previewArtifact}
+          onClose={() => setPreviewArtifact(null)}
+          onResize={setPreviewWidth}
+          width={previewWidth}
+        />
+      ) : null}
+    </section>
   );
 }
 
@@ -993,7 +990,7 @@ function ScreenPreviewPanel({
       });
 
       if (response.ok && response.screen?.id) {
-        router.push(`/workbench/screens/new?id=${encodeURIComponent(response.screen.id)}`);
+        router.push(`/screens/new?id=${encodeURIComponent(response.screen.id)}`);
         return;
       }
 

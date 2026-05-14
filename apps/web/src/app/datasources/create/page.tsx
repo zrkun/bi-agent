@@ -22,7 +22,7 @@ export default async function CreateDatasourcePage() {
       <div className="flex h-16 items-center justify-between">
         <Link
           className="inline-flex items-center gap-2 text-base font-semibold transition-colors hover:text-primary"
-          href="/workbench/datasources"
+          href="/datasources"
         >
           <ArrowLeft className="size-5" />
           新建数据源
@@ -105,7 +105,7 @@ function DatasourceTypeGrid({ items }: { items: DatasourceTypeItem[] }) {
         return (
           <Link
             className="flex h-20 items-center gap-4 rounded-2xl bg-white px-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
-            href={`/workbench/datasources/create/connect?type=${encodeURIComponent(item.type)}&name=${encodeURIComponent(item.name)}`}
+            href={`/datasources/create/connect?type=${encodeURIComponent(item.type)}&name=${encodeURIComponent(item.name)}`}
             key={`${item.type}-${index}`}
           >
             <Icon className="size-5 text-primary" />

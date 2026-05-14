@@ -1067,7 +1067,7 @@ export function ScreenEditorWorkbench({ datasets }: { datasets: DatasetRecord[] 
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 bg-[#2b2f35] px-3">
         <div className="flex min-w-0 items-center gap-3">
           <Button asChild className="text-[#cdd2dc] hover:bg-white/8 hover:text-white" size="icon" variant="ghost">
-            <Link href="/workbench/screens">
+            <Link href="/screens">
               <ArrowLeft className="size-4" />
             </Link>
           </Button>

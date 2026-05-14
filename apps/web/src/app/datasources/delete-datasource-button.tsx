@@ -45,7 +45,7 @@ export function DeleteDatasourceButton({
         return;
       }
 
-      router.replace("/workbench/datasources");
+      router.replace("/datasources");
       router.refresh();
     } catch {
       window.alert("数据源删除失败：无法请求后端服务。");

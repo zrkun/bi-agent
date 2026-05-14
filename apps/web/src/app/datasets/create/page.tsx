@@ -1266,7 +1266,7 @@ function CreateDatasetContent() {
         return;
       }
 
-      router.push("/workbench/datasets");
+      router.push("/datasets");
     } catch {
       setMessage("数据集创建失败：无法请求后端服务。");
     } finally {
@@ -1412,7 +1412,7 @@ function CreateDatasetContent() {
       <header className="flex h-14 shrink-0 items-center justify-between rounded-[24px] border border-white/70 bg-white/58 px-5 shadow-[0_12px_32px_rgba(15,23,42,0.05)] backdrop-blur-sm">
         <div className="flex min-w-0 items-center gap-3">
           <Button asChild size="icon-sm" variant="ghost">
-            <Link aria-label="返回数据集" href="/workbench/datasets">
+            <Link aria-label="返回数据集" href="/datasets">
               <ArrowLeft className="size-4" />
             </Link>
           </Button>

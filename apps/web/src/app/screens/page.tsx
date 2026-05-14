@@ -59,7 +59,7 @@ const emptyResponse: ScreenListResponse = {
 function buildPageHref(page: number) {
   const params = new URLSearchParams();
   params.set("page", String(page));
-  return `/workbench/screens?${params.toString()}`;
+  return `/screens?${params.toString()}`;
 }
 
 function getVisiblePages(currentPage: number, totalPages: number) {
@@ -88,7 +88,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       <WorkbenchPageHeader
         action={
           <Button asChild>
-            <Link className="text-#fff!" href="/workbench/screens/new">
+            <Link className="text-#fff!" href="/screens/new">
               创建大屏
             </Link>
           </Button>
@@ -139,7 +139,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
                   <TableCell className="pr-6">
                     <div className="flex justify-end gap-2">
                       <Button asChild size="sm" variant="outline">
-                        <Link href={`/workbench/screens/new?id=${encodeURIComponent(screen.id)}`}>
+                        <Link href={`/screens/new?id=${encodeURIComponent(screen.id)}`}>
                           编辑
                         </Link>
                       </Button>

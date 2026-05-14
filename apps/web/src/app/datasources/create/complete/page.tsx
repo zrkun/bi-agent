@@ -20,7 +20,7 @@ export default async function CompleteDatasourcePage({
       <div className="flex h-16 items-center justify-between">
         <Link
           className="inline-flex items-center gap-2 text-base font-semibold transition-colors hover:text-primary"
-          href="/workbench/datasources/create/connect"
+          href="/datasources/create/connect"
         >
           <ArrowLeft className="size-5" />
           新建数据源
@@ -50,10 +50,10 @@ export default async function CompleteDatasourcePage({
         </p>
         <div className="mt-8 flex gap-3">
           <Button asChild variant="outline">
-            <Link href="/workbench/datasources/create">继续创建</Link>
+            <Link href="/datasources/create">继续创建</Link>
           </Button>
           <Button asChild>
-            <Link className="text-primary-foreground" href="/workbench/datasources">
+            <Link className="text-primary-foreground" href="/datasources">
               返回数据源
             </Link>
           </Button>

@@ -155,13 +155,13 @@ export function DatasetActionButtons({ dataset }: DatasetActionButtonsProps) {
       <TooltipProvider delayDuration={100}>
         <div className="flex items-center gap-1 text-muted-foreground">
           <ActionIconButton
-            href={`/workbench/datasets/create?datasetId=${encodeURIComponent(dataset.id)}`}
+            href={`/datasets/create?datasetId=${encodeURIComponent(dataset.id)}`}
             icon={Pencil}
             label="编辑数据集"
           />
           <ActionIconButton icon={Eye} label="数据预览" onClick={openPreview} />
           <ActionIconButton
-            href={`/workbench/screens?datasetId=${encodeURIComponent(dataset.id)}`}
+            href={`/screens?datasetId=${encodeURIComponent(dataset.id)}`}
             icon={FileBarChart}
             label="新建数据大屏"
           />
